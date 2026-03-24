@@ -52,7 +52,7 @@ app.post('/watch', (req, res) => {
     try {
       const response = await fetch(`${baseURL}/api/messages/${conversationId}`, {
         headers: {
-          'Authorization': `Bearer ${authToken}`,
+          'Authorization': authToken,
           'Accept': 'application/json',
         },
       });
