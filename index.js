@@ -9,8 +9,8 @@ const expo = new Expo();
 // Active watch jobs: Map<conversationId, { pushToken, authToken, baseURL, interval, startedAt }>
 const watches = new Map();
 
-const POLL_INTERVAL_MS = 15_000;       // 15 seconds
-const MAX_WATCH_DURATION_MS = 45 * 60_000; // 45 minutes max
+const POLL_INTERVAL_MS = 10_000;          // 10 seconds
+const MAX_WATCH_DURATION_MS = 90 * 60_000; // 90 minutes (1.5 hours)
 
 // Health check
 app.get('/health', (_req, res) => {
