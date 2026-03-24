@@ -1,0 +1,13 @@
+{
+  "name": "librechat-notify-sidecar",
+  "version": "1.0.0",
+  "description": "Polling sidecar that watches LibreChat conversations and sends push notifications when AI responses complete",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "expo-server-sdk": "^3.13.0",
+    "express": "^4.21.0"
+  }
+}
