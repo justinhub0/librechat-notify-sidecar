@@ -38,7 +38,6 @@ app.post('/watch', (req, res) => {
   console.log(`[Watch] Starting: ${conversationId}`);
 
   const startedAt = Date.now();
-  let lastMessageCount = 0;
 
   const interval = setInterval(async () => {
     // Auto-expire after max duration
