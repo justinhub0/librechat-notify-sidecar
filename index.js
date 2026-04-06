@@ -6,11 +6,12 @@ app.use(express.json());
 
 const expo = new Expo();
 
-// Active watch jobs: Map<conversationId, { pushToken, authToken, baseURL, interval, startedAt }>
+// Active watch jobs: Map<conversationId, { pushToken, authToken, baseURL, interval, startedAt, lastKeepaliveAt }>
 const watches = new Map();
 
 const POLL_INTERVAL_MS = 10_000;          // 10 seconds
 const MAX_WATCH_DURATION_MS = 90 * 60_000; // 90 minutes (1.5 hours)
+const KEEPALIVE_INTERVAL_MS = 29_000;     // 29 seconds between keepalive pushes
 
 // Health check
 app.get('/health', (_req, res) => {
@@ -103,13 +104,31 @@ app.post('/watch', (req, res) => {
         // Stop watching
         clearInterval(interval);
         watches.delete(conversationId);
+      } else if (isFromAssistant && !isComplete) {
+        // Generation still in progress — send silent keepalive push to keep the iOS app alive
+        const watchEntry = watches.get(conversationId);
+        const now = Date.now();
+        if (watchEntry && now - watchEntry.lastKeepaliveAt >= KEEPALIVE_INTERVAL_MS) {
+          watchEntry.lastKeepaliveAt = now;
+          try {
+            await expo.sendPushNotificationsAsync([{
+              to: pushToken,
+              data: { type: 'keepalive', conversationId },
+              _contentAvailable: true,
+              // No title, body, or sound — silent background notification
+            }]);
+            console.log(`[Watch] Keepalive sent for: ${conversationId}`);
+          } catch (keepaliveErr) {
+            console.error(`[Watch] Keepalive push failed for ${conversationId}:`, keepaliveErr.message);
+          }
+        }
       }
     } catch (err) {
       console.error(`[Watch] Fetch error for ${conversationId}:`, err.message);
     }
   }, POLL_INTERVAL_MS);
 
-  watches.set(conversationId, { pushToken, authToken, baseURL, interval, startedAt });
+  watches.set(conversationId, { pushToken, authToken, baseURL, interval, startedAt, lastKeepaliveAt: 0 });
 
   res.json({ status: 'watching', conversationId });
 });
